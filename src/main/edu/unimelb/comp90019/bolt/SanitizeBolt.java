@@ -44,9 +44,9 @@ public class SanitizeBolt extends ShellBolt implements IRichBolt {
                 TopologyFields.USER_SCREEN_NAME, TopologyFields.TWEET_TEXT,
                 TopologyFields.FAV_COUNT, TopologyFields.CREATED_AT,
                 TopologyFields.HASHTAGS, TopologyFields.EXPANDED_URLS,
-                TopologyFields.MEDIA_URLS, TopologyFields.DISPLAY_TWEET,
-                TopologyFields.STANFORD_TEXT, TopologyFields.VADER_TEXT,
-                TopologyFields.NLTK_TEXT));
+                TopologyFields.MEDIA_URLS, TopologyFields.LOCATION,
+                TopologyFields.DISPLAY_TWEET, TopologyFields.STANFORD_TEXT,
+                TopologyFields.VADER_TEXT, TopologyFields.NLTK_TEXT));
     }
 
     @Override

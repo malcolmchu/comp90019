@@ -59,6 +59,9 @@ PUT twitter
         "media_urls": {
           "enabled": "false"
         },
+        "location": {
+          "type": "geo_point"
+        },
         "display_tweet": {
           "enabled": "false"
         },

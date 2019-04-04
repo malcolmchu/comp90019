@@ -37,6 +37,7 @@ public class TopologyFields {
     public static final String HASHTAGS = "hashtags";
     public static final String EXPANDED_URLS = "expanded_urls";
     public static final String MEDIA_URLS = "media_urls";
+    public static final String LOCATION = "location";
 
     // System generated fields
     public static final String DISPLAY_TWEET = "display_tweet";

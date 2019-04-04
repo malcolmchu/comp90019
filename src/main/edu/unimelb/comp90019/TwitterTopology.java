@@ -26,7 +26,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -56,18 +55,35 @@ public class TwitterTopology {
         topologyID.setRequired(false);
         options.addOption(topologyID);
 
-        Option keywords = new Option("k", "keywords", true,
-                "\"multiple keywords in quotes\"");
-        keywords.setRequired(true);
-        options.addOption(keywords);
+        Option woeid = new Option("i", "woeid", true,
+                "sample tweets by place (woeid) trends, "
+                        + "default = Melbourne (1103816)");
+        woeid.setRequired(false);
+        options.addOption(woeid);
+
+        Option keyword = new Option("k", "keyword", true,
+                "sample tweets by keywords, "
+                        + "in quotes \"keyword1 keyword2 ... \"");
+        keyword.setRequired(false);
+        options.addOption(keyword);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
+        int inputWoeid = -1;
+        String[] inputKeyword = null;
 
         try {
             cmd = parser.parse(options, args);
-        } catch (ParseException e) {
+
+            if (cmd.hasOption("woeid")) {
+                inputWoeid = Integer.parseInt(cmd.getOptionValue("woeid"));
+            }
+
+            if (cmd.hasOption("keyword")) {
+                inputKeyword = cmd.getOptionValue("keyword").split(" ");
+            }
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             formatter.printHelp(
                     "storm jar edu.unimelb.comp90019.TwitterTopology", options);
@@ -76,21 +92,16 @@ public class TwitterTopology {
         }
 
         TopologyBuilder builder = new TopologyBuilder();
+        builder.setSpout("twitterSpout",
+                new TwitterSampleSpout(inputWoeid, inputKeyword), 1);
 
-        if (cmd.hasOption("keywords")) {
-            builder.setSpout("twitterSpout", new TwitterSampleSpout(
-                    cmd.getOptionValue("keywords").split(" ")), 1);
-        } else {
-            builder.setSpout("twitterSpout", new TwitterSampleSpout(), 1);
-        }
-
-        builder.setBolt("langFilterBolt", new LangFilterBolt(), 4)
+        builder.setBolt("langFilterBolt", new LangFilterBolt(), 2)
                 .shuffleGrouping("twitterSpout");
-        builder.setBolt("sanitizeBolt", new SanitizeBolt(), 4)
+        builder.setBolt("sanitizeBolt", new SanitizeBolt(), 2)
                 .shuffleGrouping("langFilterBolt");
-        builder.setBolt("stanfordSentimentBolt", new StanfordSentimentBolt(), 2)
+        builder.setBolt("stanfordSentimentBolt", new StanfordSentimentBolt(), 6)
                 .shuffleGrouping("sanitizeBolt");
-        builder.setBolt("vaderSentimentBolt", new VaderSentimentBolt(), 4)
+        builder.setBolt("vaderSentimentBolt", new VaderSentimentBolt(), 2)
                 .shuffleGrouping("stanfordSentimentBolt");
 
         // Define time and size trigger to submit results to ES
@@ -101,7 +112,7 @@ public class TwitterTopology {
         esBoltConf.put("es.storm.bolt.tick.tuple.flush", "true");
         esBoltConf.put("es.mapping.id", "id");
 
-        builder.setBolt("esBolt", new EsBolt("twitter/tweet", esBoltConf), 2)
+        builder.setBolt("esBolt", new EsBolt("twitter/tweet", esBoltConf), 1)
                 .shuffleGrouping("vaderSentimentBolt")
                 .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 15);
 
@@ -122,8 +133,9 @@ public class TwitterTopology {
             cluster.submitTopology("twitter", topologyConf,
                     builder.createTopology());
 
-            // Sleep for a min
-            Thread.sleep(60000);
+            // Sleep for X mins before shutting down cluster
+            Thread.sleep(
+                    Constants.LOCAL_CLUSTER_RUNTIME_IN_MINUTES * 60 * 1000);
 
             cluster.shutdown();
         }

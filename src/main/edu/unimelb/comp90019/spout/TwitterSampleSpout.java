@@ -17,7 +17,11 @@
 */
 package edu.unimelb.comp90019.spout;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.storm.Config;
@@ -30,6 +34,7 @@ import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
 import org.joda.time.DateTime;
 
+import edu.unimelb.comp90019.Constants;
 import edu.unimelb.comp90019.TopologyFields;
 import twitter4j.FilterQuery;
 import twitter4j.HashtagEntity;
@@ -38,6 +43,11 @@ import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
+import twitter4j.Trend;
+import twitter4j.Trends;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.URLEntity;
@@ -54,11 +64,16 @@ public class TwitterSampleSpout extends BaseRichSpout {
     SpoutOutputCollector collector;
     LinkedBlockingQueue<Status> queue = null;
 
-    String keyWords[];
+    int woeid = -1;
+    String[] keywords;
+    ArrayList<String> filter;
+    Twitter twitter;
+    Trends trends;
     TwitterStream twitterStream;
 
-    public TwitterSampleSpout(String[] keyWords) {
-        this.keyWords = keyWords;
+    public TwitterSampleSpout(int woeid, String[] keywords) {
+        this.woeid = woeid > 0 ? woeid : Constants.DEFAULT_WOEID;
+        this.keywords = keywords;
     }
 
     public TwitterSampleSpout() {
@@ -70,7 +85,8 @@ public class TwitterSampleSpout extends BaseRichSpout {
             SpoutOutputCollector collector) {
         this.queue = new LinkedBlockingQueue<Status>(1000);
         this.collector = collector;
-        StatusListener listener = new StatusListener() {
+
+        final StatusListener listener = new StatusListener() {
 
             @Override
             public void onStatus(Status status) {
@@ -99,14 +115,57 @@ public class TwitterSampleSpout extends BaseRichSpout {
 
         };
 
-        twitterStream = new TwitterStreamFactory().getInstance();
-        twitterStream.addListener(listener);
-        if (keyWords == null) {
-            twitterStream.sample();
-        } else {
-            FilterQuery query = new FilterQuery().track(keyWords);
-            twitterStream.filter(query);
-        }
+        twitter = new TwitterFactory().getInstance();
+
+        // Create a timer to trigger defined action immediately (0) and schedule
+        // subsequent action as defined by
+        // (Constants.REFRESH_INTERVAL_IN_MINUTES)
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                // Get trends by place (woeid)
+                try {
+                    trends = twitter.getPlaceTrends(woeid);
+                    filter = new ArrayList<String>();
+
+                    for (Trend trend : trends.getTrends()) {
+                        filter.add(trend.getName());
+                    }
+
+                    if (keywords != null) {
+                        for (String keyword : keywords) {
+                            filter.add(keyword);
+                        }
+                    }
+                } catch (TwitterException te) {
+                    te.printStackTrace();
+                    System.out.println(
+                            "Failed to get trends: " + te.getMessage());
+                    System.exit(-1);
+                }
+
+                // Shutdown the twitter stream if it was created before
+                if (twitterStream != null) {
+                    twitterStream.shutdown();
+                }
+
+                twitterStream = new TwitterStreamFactory().getInstance();
+                twitterStream.addListener(listener);
+
+                // If filter (trends) is empty, sample without filtering
+                if (filter.size() > 0) {
+                    FilterQuery query = new FilterQuery()
+                            .track(filter.toArray(new String[filter.size()]));
+                    twitterStream.filter(query);
+
+                    System.out.println("Filtering twitter streams with: "
+                            + Arrays.toString(filter.toArray()));
+                } else {
+                    twitterStream.sample();
+                }
+            }
+        }, 0, Constants.REFRESH_TRENDS_IN_MINUTES * 60 * 1000);
     }
 
     @Override
@@ -129,12 +188,14 @@ public class TwitterSampleSpout extends BaseRichSpout {
             }
 
             // Convert java.util.Date to org.joda.time.DateTime
-            // Joda time will output date in ISO8601 format (ES Compatibility)
+            // Joda time will output date in ISO8601 format
+            // This is necessary as ES only accepts date format in ISO8601
             DateTime dt = new DateTime(ret.getCreatedAt());
 
             String hashtags = "";
             String expanded_urls = "";
             String media_urls = "";
+            String location = null;
 
             // Hashtags
             for (HashtagEntity he : ret.getHashtagEntities()) {
@@ -148,16 +209,25 @@ public class TwitterSampleSpout extends BaseRichSpout {
 
             // Media URLs (Photos)
             for (MediaEntity me : ret.getMediaEntities()) {
-                if (me.getType().equals("photo")) {
+                if (me.getType().equals(Constants.MEDIA_TYPE)) {
                     media_urls += me.getMediaURLHttps()
                             + TopologyFields.DELIMITER;
                 }
             }
 
+            // Location is only available for original tweets and not retweets
+            // https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters.html#locations
+            if (ret.getGeoLocation() != null) {
+                location = String.valueOf(ret.getGeoLocation().getLatitude())
+                        + ","
+                        + String.valueOf(ret.getGeoLocation().getLongitude());
+                System.out.println("geolocation: " + location);
+            }
+
             collector.emit(new Values(ret.getId(), ret.getLang(),
                     ret.getUser().getScreenName(), tweet_text,
                     ret.getFavoriteCount(), dt.toString(), hashtags,
-                    expanded_urls, media_urls));
+                    expanded_urls, media_urls, location));
         }
     }
 
@@ -187,6 +257,6 @@ public class TwitterSampleSpout extends BaseRichSpout {
                 TopologyFields.USER_SCREEN_NAME, TopologyFields.TWEET_TEXT,
                 TopologyFields.FAV_COUNT, TopologyFields.CREATED_AT,
                 TopologyFields.HASHTAGS, TopologyFields.EXPANDED_URLS,
-                TopologyFields.MEDIA_URLS));
+                TopologyFields.MEDIA_URLS, TopologyFields.LOCATION));
     }
 }

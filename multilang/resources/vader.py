@@ -19,7 +19,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 class VaderSentimentBolt(storm.BasicBolt):
     def process(self, tup):
-    	vader_text = tup.values[11].encode('utf-8')
+    	vader_text = tup.values[12].encode('utf-8')
     	analyzer = SentimentIntensityAnalyzer()
         # analyzer.polarity_scores() returns the result in a dictionary
         # with the following keys 'compound', 'neg', 'neu', 'pos'
@@ -28,7 +28,7 @@ class VaderSentimentBolt(storm.BasicBolt):
         tuple = [tup.values[0], tup.values[1], tup.values[2], tup.values[3],
         	tup.values[4], tup.values[5], tup.values[6], tup.values[7],
         	tup.values[8], tup.values[9], tup.values[10], tup.values[11],
-            tup.values[12], tup.values[13],
+            tup.values[12], tup.values[13], tup.values[14],
             vs['compound'], vs['neg'], vs['neu'], vs['pos']]
 
         storm.emit(tuple)

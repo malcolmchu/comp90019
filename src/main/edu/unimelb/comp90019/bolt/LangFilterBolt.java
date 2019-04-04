@@ -58,7 +58,8 @@ public class LangFilterBolt implements IRichBolt {
                     tuple.getValueByField(TopologyFields.CREATED_AT),
                     tuple.getValueByField(TopologyFields.HASHTAGS),
                     tuple.getValueByField(TopologyFields.EXPANDED_URLS),
-                    tuple.getValueByField(TopologyFields.MEDIA_URLS)));
+                    tuple.getValueByField(TopologyFields.MEDIA_URLS),
+                    tuple.getValueByField(TopologyFields.LOCATION)));
             // @formatter:on
         }
     }
@@ -73,7 +74,7 @@ public class LangFilterBolt implements IRichBolt {
                 TopologyFields.USER_SCREEN_NAME, TopologyFields.TWEET_TEXT,
                 TopologyFields.FAV_COUNT, TopologyFields.CREATED_AT,
                 TopologyFields.HASHTAGS, TopologyFields.EXPANDED_URLS,
-                TopologyFields.MEDIA_URLS));
+                TopologyFields.MEDIA_URLS, TopologyFields.LOCATION));
     }
 
     @Override

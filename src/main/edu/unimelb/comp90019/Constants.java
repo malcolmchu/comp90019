@@ -31,6 +31,11 @@ public class Constants {
     public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
     public static final String ACCESS_TOKEN_SECRET = "ACCESS_TOKEN_SECRET";
 
+    public static final int DEFAULT_WOEID = 1103816; // Melbourne
+    public static final int LOCAL_CLUSTER_RUNTIME_IN_MINUTES = 5;
+    public static final int REFRESH_TRENDS_IN_MINUTES = 15;
+    public static final String MEDIA_TYPE = "photo";
+
     // @formatter:off
     /*
      * To authenticate with Twitter API:

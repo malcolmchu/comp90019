@@ -48,18 +48,13 @@ class SanitizeBolt(storm.BasicBolt):
     	# Remove Hashtags
     	preprocess_tweet = re.sub(r"#\S+", "", preprocess_tweet)
     	# Remove Mentions
-    	preprocess_tweet = re.sub(r"@\S+", "", preprocess_tweet)
-        # Remove punctuations
-        preprocess_tweet = re.sub(r"[_:]", " ", preprocess_tweet)        
+    	preprocess_tweet = re.sub(r"@\S+", "", preprocess_tweet)       
     	# Remove whitespaces
     	preprocess_tweet = re.sub("\s\s+" , " ", preprocess_tweet).strip()
     	
         ## NLTK pre-processing ##
         nltk_text = preprocess_tweet
-        # Remove emojis
-        #allchars = [str for str in nltk_text]
-        #emoji_list = [c for c in allchars if c in emoji.UNICODE_EMOJI]
-        #clean_text = ' '.join([str for str in nltk_text.split() if not any(i in str for i in emoji_list)])
+        # Remove unicode characters (including emojis)
         nltk_text = nltk_text.encode('ascii', 'ignore').decode('ascii')
         # Remove punctuations and digits
         regex = re.compile('[%s]' % re.escape(string.punctuation))
@@ -79,7 +74,8 @@ class SanitizeBolt(storm.BasicBolt):
         
     	## StanfordNLP pre-processing ##
         # Convert emojis to text
-    	snlp_text = emoji.demojize(preprocess_tweet)
+        snlp_text = re.sub(r"[_:]", " ", preprocess_tweet) 
+    	snlp_text = emoji.demojize(snlp_text)
         snlp_text = re.sub(r"_", " ", snlp_text)
         snlp_text = re.sub(r":", " \" ", snlp_text)
         snlp_text = re.sub("\s\s+" , " ", snlp_text).strip()
@@ -89,7 +85,8 @@ class SanitizeBolt(storm.BasicBolt):
 
         tuple = [tup.values[0], tup.values[1], tup.values[2], tup.values[3],
         	tup.values[4], tup.values[5], tup.values[6], tup.values[7],
-        	tup.values[8], display_tweet, snlp_text, vader_text, nltk_text]
+        	tup.values[8], tup.values[9], display_tweet,
+            snlp_text, vader_text, nltk_text]
 
         storm.emit(tuple)
 

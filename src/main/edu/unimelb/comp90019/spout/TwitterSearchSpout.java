@@ -40,6 +40,12 @@ import twitter4j.TwitterFactory;
 /**
  * Twitter Search Spout
  *
+ * Search for tweets using the Twitter Search API. Not recommended for use
+ * because there is rate limiting when using the Search API.
+ *
+ * https://developer.twitter.com/en/docs/basics/rate-limits
+ * https://developer.twitter.com/en/docs/basics/rate-limiting
+ *
  * @author Malcolm Chu
  * @version 0.1
  * @since 2019-03-22

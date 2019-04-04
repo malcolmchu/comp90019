@@ -76,6 +76,7 @@ public class StanfordSentimentBolt implements IRichBolt {
                 tuple.getValueByField(TopologyFields.HASHTAGS),
                 tuple.getValueByField(TopologyFields.EXPANDED_URLS),
                 tuple.getValueByField(TopologyFields.MEDIA_URLS),
+                tuple.getValueByField(TopologyFields.LOCATION),
                 tuple.getValueByField(TopologyFields.DISPLAY_TWEET),
                 tuple.getValueByField(TopologyFields.STANFORD_TEXT),
                 tuple.getValueByField(TopologyFields.VADER_TEXT),
@@ -94,9 +95,10 @@ public class StanfordSentimentBolt implements IRichBolt {
                 TopologyFields.USER_SCREEN_NAME, TopologyFields.TWEET_TEXT,
                 TopologyFields.FAV_COUNT, TopologyFields.CREATED_AT,
                 TopologyFields.HASHTAGS, TopologyFields.EXPANDED_URLS,
-                TopologyFields.MEDIA_URLS, TopologyFields.DISPLAY_TWEET,
-                TopologyFields.STANFORD_TEXT, TopologyFields.VADER_TEXT,
-                TopologyFields.NLTK_TEXT, TopologyFields.STANFORD_SCORE));
+                TopologyFields.MEDIA_URLS, TopologyFields.LOCATION,
+                TopologyFields.DISPLAY_TWEET, TopologyFields.STANFORD_TEXT,
+                TopologyFields.VADER_TEXT, TopologyFields.NLTK_TEXT,
+                TopologyFields.STANFORD_SCORE));
     }
 
     @Override
