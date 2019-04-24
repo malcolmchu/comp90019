@@ -54,4 +54,13 @@ public class Constants {
      * Twitter twitter = tf.getInstance();
      */
     // @formatter:on
+
+    public static final String ES_SERVER = "localhost";
+    public static final String ES_PORT = "9200";
+    // ES 6.7 - index:twitter, type:tweet
+    // public static final String ES_INDEX = "twitter/tweet";
+    // ES 7.0 - index:twitter-tweet (type has been removed)
+    public static final String ES_INDEX = "twitter-tweet";
+    public static final String ES_SUBMIT_BATCH_SIZE = "500";
+    public static final int ES_SUBMIT_INTERVAL_IN_SECONDS = 15;
 }

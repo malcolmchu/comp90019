@@ -105,16 +105,20 @@ public class TwitterTopology {
                 .shuffleGrouping("stanfordSentimentBolt");
 
         // Define time and size trigger to submit results to ES
-        // es.storm.bolt.flush.entries.size = 500
-        // TOPOLOGY_TICK_TUPLE_FREQ_SECS = 15
+        // es.storm.bolt.flush.entries.size = X, submit to ES with X results
+        // TOPOLOGY_TICK_TUPLE_FREQ_SECS = Y, submit to ES after Y seconds
         Map esBoltConf = new HashMap();
-        esBoltConf.put("es.storm.bolt.flush.entries.size", "500");
+        esBoltConf.put("es.nodes", Constants.ES_SERVER);
+        esBoltConf.put("es.port", Constants.ES_PORT);
+        esBoltConf.put("es.storm.bolt.flush.entries.size",
+                Constants.ES_SUBMIT_BATCH_SIZE);
         esBoltConf.put("es.storm.bolt.tick.tuple.flush", "true");
         esBoltConf.put("es.mapping.id", "id");
 
-        builder.setBolt("esBolt", new EsBolt("twitter/tweet", esBoltConf), 1)
+        builder.setBolt("esBolt", new EsBolt(Constants.ES_INDEX, esBoltConf), 1)
                 .shuffleGrouping("vaderSentimentBolt")
-                .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 15);
+                .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
+                        Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
 
         Config topologyConf = new Config();
         topologyConf.setDebug(true);

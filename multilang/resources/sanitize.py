@@ -24,7 +24,7 @@ import emoji
 
 # pip install twitter-text-python
 # pip install nltk
-# nltk.download(
+# nltk.download()
 # nltk.download('punkt')
 # nltk.download('stopwords')
 # nltk.download('wordnet')

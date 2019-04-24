@@ -1,0 +1,94 @@
+PUT twitter-tweet
+{
+  "settings":{
+    "number_of_shards":5,
+    "number_of_replicas":1,
+    "analysis":{
+      "analyzer":{
+        "hashtag_analyzer":{ 
+          "type":"custom",
+          "tokenizer":"standard"
+        },
+        "tweet_analyzer":{ 
+          "type":"custom",
+          "tokenizer":"standard",
+          "filter":[
+            "lowercase",
+            "english_stop"
+          ]
+        }
+      },
+      "filter":{
+        "english_stop":{
+          "type":"stop",
+          "stopwords":"_english_"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "lang": {
+        "type": "keyword"
+      },
+      "user_screen_name": {
+        "type": "keyword"
+      },        
+      "tweet_text": {
+        "type": "text",
+        "analyzer":"tweet_analyzer"
+      },
+      "favorite_count": {
+        "type": "long"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "hashtags": {
+        "type": "text",
+        "analyzer":"hashtag_analyzer",
+        "fielddata":"true"
+      },
+      "expanded_urls": {
+        "enabled": "false"
+      },
+      "media_urls": {
+        "enabled": "false"
+      },
+      "location": {
+        "type": "geo_point"
+      },
+      "display_tweet": {
+        "enabled": "false"
+      },
+      "stanford_text": {
+        "enabled": "false"
+      },
+      "vader_text": {
+        "enabled": "false"
+      },
+      "nltk_text": {
+        "type": "text",
+        "fielddata": true
+      },
+      "snlp_score": {
+        "type": "integer"
+      },
+      "vs_compound": {
+        "type": "float"
+      },
+      "vs_negative": {
+        "type": "float"
+      },
+      "vs_neutral": {
+        "type": "float"
+      },
+      "vs_positive": {
+        "type": "float"
+      }
+    }
+  }
+}
