@@ -27,14 +27,14 @@ import org.apache.storm.tuple.Fields;
 import edu.unimelb.comp90019.TopologyFields;
 
 /**
- * Vader Sentiment Bolt
+ * Vader Sentiment Bolt in Python
  *
  * @author Malcolm Chu
  * @version 0.1
  * @since 2019-03-24
  */
-public class VaderSentimentBolt extends ShellBolt implements IRichBolt {
-    public VaderSentimentBolt() {
+public class VaderPySentimentBolt extends ShellBolt implements IRichBolt {
+    public VaderPySentimentBolt() {
         super("python", "vader.py");
     }
 

@@ -66,7 +66,12 @@
 			<artifactId>stanford-corenlp</artifactId>
 			<classifier>models</classifier>
 			<version>${stanford.corenlp.version}</version>
-  		</dependency>  		
+  		</dependency>
+  		<dependency>
+			<groupId>com.github.apanimesh061</groupId>
+			<artifactId>vader-sentiment-analyzer</artifactId>
+			<version>1.0</version>
+		</dependency>  		
   		<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-storm -->
 		<dependency>
 		    <groupId>org.elasticsearch</groupId>

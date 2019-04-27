@@ -35,7 +35,7 @@ import org.elasticsearch.storm.EsBolt;
 import edu.unimelb.comp90019.bolt.LangFilterBolt;
 import edu.unimelb.comp90019.bolt.SanitizeBolt;
 import edu.unimelb.comp90019.bolt.StanfordSentimentBolt;
-import edu.unimelb.comp90019.bolt.VaderSentimentBolt;
+import edu.unimelb.comp90019.bolt.VaderPySentimentBolt;
 import edu.unimelb.comp90019.spout.TwitterSampleSpout;
 
 /**
@@ -101,7 +101,7 @@ public class TwitterTopology {
                 .shuffleGrouping("langFilterBolt");
         builder.setBolt("stanfordSentimentBolt", new StanfordSentimentBolt(), 6)
                 .shuffleGrouping("sanitizeBolt");
-        builder.setBolt("vaderSentimentBolt", new VaderSentimentBolt(), 2)
+        builder.setBolt("vaderSentimentBolt", new VaderPySentimentBolt(), 2)
                 .shuffleGrouping("stanfordSentimentBolt");
 
         // Define time and size trigger to submit results to ES

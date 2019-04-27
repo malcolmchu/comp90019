@@ -47,6 +47,7 @@ public class LangFilterBolt implements IRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
+        // Process tweets with "en" language code
         if (tuple.getValueByField(TopologyFields.LANG).equals("en")) {
             // @formatter:off
             collector.emit(new Values(
