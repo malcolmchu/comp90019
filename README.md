@@ -53,6 +53,12 @@ Ensure that the version of `elasticsearch-storm` dependency inside the `pom.xml`
 </dependency>
 ```
 
+**IMPORTANT:** The following data directories must be created to process tweet images
+```
+mkdir /data/tweet/images/
+mkdir /data/seaweedfs/data1/
+```
+
 ### Installing Dependencies
 
 Note that all dependencies must be installed on each worker machine on the Storm cluster. We use `pip install` to install packages into Python 2 and `pip3 install` for Python 3. Ensure that this is the same for your environment or adjust the installation procedures accordingly. Python 2 scripts are executed with `python <script-name>` and Python 3 scripts are executed with `python3 <script-name>`. Python scripts are located in `multilang/resources` under the project folder and are executed by Storm bolts as follows:
@@ -74,12 +80,10 @@ public class SanitizeBolt extends ShellBolt implements IRichBolt {
     * *twitter-text-python* [link](https://pypi.org/project/twitter-text-python/): parse twitter text and convert them to html for display
     * *emoji* [link](https://pypi.org/project/emoji/): convert emojis into text descriptions
     * *vaderSentiment* [link](https://pypi.org/project/vader-sentiment/): analyse sentiment polarity (of tweet) using vader
-    * *wget* [link](https://pypi.org/project/wget/): download tweet images using wget
     ```
     sudo pip install twitter-text-python
     sudo pip install emoji
     sudo pip install vaderSentiment
-    sudo pip install wget
     ```
 
     **Important**:
@@ -113,11 +117,13 @@ public class SanitizeBolt extends ShellBolt implements IRichBolt {
         ```
 
 3. Install Python 3.6 dependencies
+	* *wget* [link](https://pypi.org/project/wget/): download tweet images using wget
     * *opencv-contrib-python* [link](https://pypi.org/project/opencv-contrib-python/): Pre-built OpenCV packages for Python
     * *imutils* [link](https://pypi.org/project/imutils/): Series of convenience functions to make basic image processing functions
     * *pillow* [link](https://pypi.org/project/Pillow/): Read all image types supported by the Python Imaging Library e.g. jpeg, png, gif, bmp, tiff, etc.
     * *pytesseract* [link](https://pypi.org/project/pytesseract/): Python-tesseract is a wrapper for Google’s Tesseract-OCR Engine and uses pillow to provide additional support for most image formats (Tesseract supports only tiff and bmp by default).
     ```
+    sudo pip3 install wget
     sudo pip3 install opencv-contrib-python
     sudo pip3 install imutils
     sudo pip3 install pillow
@@ -151,6 +157,24 @@ public class SanitizeBolt extends ShellBolt implements IRichBolt {
     
     If you see `tesseract 4` in the output, it means that tesseract has been installed.
 
+5. Install SeaweedFS [link](https://github.com/chrislusf/seaweedfs/wiki/Getting-Started)
+
+    Step 1: Install Go on your machine and setup the environment by following the instructions at:
+    
+    <https://golang.org/doc/install>
+
+    **Note**: Make sure you set up your `$GOPATH`
+
+    Step 2: Install Mercurial by following the instructions at:
+
+    <http://mercurial.selenic.com/downloads>
+
+    Step 3: Download, compile, and install the project by executing the following command:
+    ```
+    go get github.com/chrislusf/seaweedfs/weed
+    ```
+    Once this is done, you will find the executable "weed" in your `$GOPATH/bin` directory
+
 ## Build
 
 Using standard Maven commands, build the project from the project home directory. Java dependencies are declared in `pom.xml` and may take awhile to download (for the first time). If the build is successful, the JAR file will be available under the `target` directory.
@@ -162,11 +186,12 @@ Configure ES settings in `Constants.java` depending on the ES version installed:
 public static final String ES_SERVER = "localhost";
 public static final String ES_PORT = "9200";
 // ES 6.7 - index:twitter, type:tweet
-// public static final String ES_INDEX = "twitter/tweet";
+// public static final String ES_TWEET_INDEX = "twitter/tweet";
 // ES 7.0 - index:twitter-tweet (type has been removed)
-public static final String ES_INDEX = "twitter-tweet";
+public static final String ES_TWEET_INDEX = "twitter-tweet";
+public static final String ES_IMAGE_INDEX = "twitter-tweet-image";
 public static final String ES_SUBMIT_BATCH_SIZE = "500";
-public static final String ES_SUBMIT_INTERVAL_IN_SECONDS = "15";
+public static final int ES_SUBMIT_INTERVAL_IN_SECONDS = 15;
 ```
 
 To clean the build, execute:
@@ -330,7 +355,12 @@ PUT twitter-tweet
 
 Once successfully imported, you will be able to go to `Discover`, `Visualize` and `Dashboard` in the left side bar of Kibana to open saved objects that have been pre-built for this project.
 
-**6 a)** Run storm topology on a storm cluster
+**6.** Start SeaweedFS (1 master and 1 volume) from `$GOPATH/bin` directory
+```
+./weed server -master.port=9333 -volume.port=9001 -dir="/data/seaweedfs/data1/"
+```
+
+**7 a)** Run storm topology on a storm cluster
 ```
 storm jar target/comp90019-0.0.1-SNAPSHOT.jar edu.unimelb.comp90019.TwitterTopology -t <topology-id>
 ```
@@ -340,7 +370,7 @@ Supported flags
 * -i "sample tweets by place (woeid) trends; default = 1103816 (Melbourne)"
 * -k "sample tweets by additional keywords, in quotes \"keyword1 keyword2 ... \" "
 
-**6 b)** Stop storm topology
+**7 b)** Stop storm topology
 ```
 storm kill <topology-id>
 ```
@@ -351,6 +381,7 @@ storm kill <topology-id>
 * [Apache Storm](https://storm.apache.org/) - Distributed Realtime Computation System
 * [Elasticsearch](https://www.elastic.co/products/elasticsearch) - Distributed, RESTful search and analytics engine
 * [Kibana](https://www.elastic.co/products/kibana) - Visualize data in Elasticsearch
+* [SeaweedFS](https://github.com/chrislusf/seaweedfs) - Upload images to a distributed file system
 
 ## Authors
 
@@ -368,3 +399,4 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## Acknowledgments
 
+OCR Text Recognition is adapted from [PyImageSearch](https://www.pyimagesearch.com/2018/09/17/opencv-ocr-and-text-recognition-with-tesseract/), originally written by Adrian Rosebrock

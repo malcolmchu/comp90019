@@ -1,4 +1,5 @@
 /Users/malcolmchu/Repository/comp90019/src/main/edu/unimelb/comp90019/bolt/SanitizeBolt.java
+/Users/malcolmchu/Repository/comp90019/src/main/edu/unimelb/comp90019/bolt/ImageOcrBolt.java
 /Users/malcolmchu/Repository/comp90019/src/main/edu/unimelb/comp90019/TwitterTopology.java
 /Users/malcolmchu/Repository/comp90019/src/main/edu/unimelb/comp90019/bolt/VaderPySentimentBolt.java
 /Users/malcolmchu/Repository/comp90019/src/main/edu/unimelb/comp90019/bolt/LangFilterBolt.java

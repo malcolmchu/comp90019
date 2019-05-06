@@ -54,4 +54,9 @@ public class TopologyFields {
     public static final String VADER_SCORE_NEUTRAL = "vs_neutral";
     public static final String VADER_SCORE_POSITIVE = "vs_positive";
 
+    // Image Ocr generated fields
+    public static final String IMAGE_OCR_URL = "image_ocr_url";
+    public static final String IMAGE_OCR_TEXT = "image_ocr_text";
+    public static final String IMAGE_OCR_ORIG_URL = "image_ocr_orig_url";
+    public static final String IMAGE_OCR_ROI_URL = "image_ocr_roi_url";
 }

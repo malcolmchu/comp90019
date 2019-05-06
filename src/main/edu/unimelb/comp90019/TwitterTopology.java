@@ -95,6 +95,7 @@ public class TwitterTopology {
         builder.setSpout("twitterSpout",
                 new TwitterSampleSpout(inputWoeid, inputKeyword), 1);
 
+        // Text Processing Bolts
         builder.setBolt("langFilterBolt", new LangFilterBolt(), 2)
                 .shuffleGrouping("twitterSpout");
         builder.setBolt("sanitizeBolt", new SanitizeBolt(), 2)
@@ -103,6 +104,9 @@ public class TwitterTopology {
                 .shuffleGrouping("sanitizeBolt");
         builder.setBolt("vaderSentimentBolt", new VaderPySentimentBolt(), 2)
                 .shuffleGrouping("stanfordSentimentBolt");
+        // Image Processing Bolts
+//        builder.setBolt("imageOcrBolt", new ImageOcrBolt(), 2)
+//                .shuffleGrouping("langFilterBolt");
 
         // Define time and size trigger to submit results to ES
         // es.storm.bolt.flush.entries.size = X, submit to ES with X results
@@ -113,12 +117,26 @@ public class TwitterTopology {
         esBoltConf.put("es.storm.bolt.flush.entries.size",
                 Constants.ES_SUBMIT_BATCH_SIZE);
         esBoltConf.put("es.storm.bolt.tick.tuple.flush", "true");
-        esBoltConf.put("es.mapping.id", "id");
 
-        builder.setBolt("esBolt", new EsBolt(Constants.ES_INDEX, esBoltConf), 1)
+        // Specific settings for tweet bolt
+        Map esBoltTweetConf = esBoltConf;
+        esBoltTweetConf.put("es.mapping.id", TopologyFields.ID);
+
+        builder.setBolt("esTweetBolt",
+                new EsBolt(Constants.ES_TWEET_INDEX, esBoltTweetConf), 1)
                 .shuffleGrouping("vaderSentimentBolt")
                 .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
                         Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
+
+//        // Specific settings for image bolt
+//        Map esBoltImageConf = esBoltConf;
+//        esBoltImageConf.put("es.mapping.id", TopologyFields.IMAGE_OCR_URL);
+//
+//        builder.setBolt("esImageBolt",
+//                new EsBolt(Constants.ES_IMAGE_INDEX, esBoltImageConf), 1)
+//                .shuffleGrouping("imageOcrBolt")
+//                .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
+//                        Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
 
         Config topologyConf = new Config();
         topologyConf.setDebug(true);

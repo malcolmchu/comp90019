@@ -13,6 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Description: Perform sentiment analysis on tweet text using vader python
+# 
+# Author: Malcolm Chu
+
 import storm
 from io import open
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer

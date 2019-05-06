@@ -201,11 +201,13 @@ public class TwitterSampleSpout extends BaseRichSpout {
             for (HashtagEntity he : ret.getHashtagEntities()) {
                 hashtags += he.getText() + TopologyFields.DELIMITER;
             }
+            hashtags = hashtags.trim();
 
             // Expanded URLs (Links)
             for (URLEntity ue : ret.getURLEntities()) {
                 expanded_urls += ue.getExpandedURL() + TopologyFields.DELIMITER;
             }
+            expanded_urls = expanded_urls.trim();
 
             // Media URLs (Photos)
             for (MediaEntity me : ret.getMediaEntities()) {
@@ -214,6 +216,7 @@ public class TwitterSampleSpout extends BaseRichSpout {
                             + TopologyFields.DELIMITER;
                 }
             }
+            media_urls = media_urls.trim();
 
             // Location is only available for original tweets and not retweets
             // https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters.html#locations
