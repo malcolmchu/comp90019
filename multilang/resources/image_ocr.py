@@ -72,7 +72,7 @@ class ImageOcrBolt(storm.BasicBolt):
 
                     image_ocr_roi_url = ''
                     if image_ocr_roi_binary:
-                                                # Write to local file system                    
+                        # Write to local file system                    
                         nparr = np.fromstring(image_ocr_roi_binary, np.uint8)
                         img_roi = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                         cv2.imwrite(img_roi_outpath, img_roi)

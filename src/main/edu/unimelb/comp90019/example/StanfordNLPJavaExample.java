@@ -20,20 +20,25 @@ package edu.unimelb.comp90019.example;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.vader.sentiment.analyzer.SentimentAnalyzer;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.PropertiesUtils;
 
 /**
- * Vader Sentiment Example in Java
- *
- * Source: https://github.com/apanimesh061/VaderSentimentJava
+ * StanfordNLP Sentiment Example in Java
  *
  * @author Malcolm Chu
  * @version 0.1
  * @since 2019-04-26
  */
-public class VaderJavaExample {
+public class StanfordNLPJavaExample {
     public static void main(String[] args) throws IOException {
-        ArrayList<String> sentences = new ArrayList<String>() {
+        ArrayList<String> stanfordTextList = new ArrayList<String>() {
             {
                 add("Unimelb is smart, handsome, and funny.");
                 add("Unimelb is smart, handsome, and funny!");
@@ -54,12 +59,36 @@ public class VaderJavaExample {
             }
         };
 
-        for (String sentence : sentences) {
-            System.out.println(sentence);
-            SentimentAnalyzer sentimentAnalyzer = new SentimentAnalyzer(
-                    sentence);
-            sentimentAnalyzer.analyze();
-            System.out.println(sentimentAnalyzer.getPolarity());
+        for (String stanfordText : stanfordTextList) {
+            System.out.println(stanfordText);
+
+            StanfordCoreNLP pipeline = new StanfordCoreNLP(
+                    PropertiesUtils.asProperties("annotators",
+                            "tokenize, ssplit, parse, sentiment"));
+
+            // Calculate the sentiment score based on the longest sentence
+            int sentimentScore = 0;
+            if (stanfordText != null && stanfordText.length() > 0) {
+                int longest = 0;
+                int count = 0;
+                Annotation annotation = pipeline.process(stanfordText);
+                for (CoreMap sentence : annotation
+                        .get(CoreAnnotations.SentencesAnnotation.class)) {
+
+                    System.out.println("sentence" + count++);
+
+                    Tree tree = sentence.get(
+                            SentimentCoreAnnotations.SentimentAnnotatedTree.class);
+                    int score = RNNCoreAnnotations.getPredictedClass(tree);
+
+                    String currentSentence = sentence.toString();
+                    if (currentSentence.length() > longest) {
+                        sentimentScore = score;
+                        longest = currentSentence.length();
+                    }
+                }
+            }
+            System.out.println(sentimentScore);
         }
     }
 }

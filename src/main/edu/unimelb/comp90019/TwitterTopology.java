@@ -32,6 +32,7 @@ import org.apache.storm.StormSubmitter;
 import org.apache.storm.topology.TopologyBuilder;
 import org.elasticsearch.storm.EsBolt;
 
+import edu.unimelb.comp90019.bolt.ImageOcrBolt;
 import edu.unimelb.comp90019.bolt.LangFilterBolt;
 import edu.unimelb.comp90019.bolt.SanitizeBolt;
 import edu.unimelb.comp90019.bolt.StanfordSentimentBolt;
@@ -105,8 +106,8 @@ public class TwitterTopology {
         builder.setBolt("vaderSentimentBolt", new VaderPySentimentBolt(), 2)
                 .shuffleGrouping("stanfordSentimentBolt");
         // Image Processing Bolts
-//        builder.setBolt("imageOcrBolt", new ImageOcrBolt(), 2)
-//                .shuffleGrouping("langFilterBolt");
+        builder.setBolt("imageOcrBolt", new ImageOcrBolt(), 2)
+                .shuffleGrouping("langFilterBolt");
 
         // Define time and size trigger to submit results to ES
         // es.storm.bolt.flush.entries.size = X, submit to ES with X results
@@ -128,15 +129,15 @@ public class TwitterTopology {
                 .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
                         Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
 
-//        // Specific settings for image bolt
-//        Map esBoltImageConf = esBoltConf;
-//        esBoltImageConf.put("es.mapping.id", TopologyFields.IMAGE_OCR_URL);
-//
-//        builder.setBolt("esImageBolt",
-//                new EsBolt(Constants.ES_IMAGE_INDEX, esBoltImageConf), 1)
-//                .shuffleGrouping("imageOcrBolt")
-//                .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
-//                        Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
+        // Specific settings for image bolt
+        Map esBoltImageConf = esBoltConf;
+        esBoltImageConf.put("es.mapping.id", TopologyFields.IMAGE_OCR_URL);
+
+        builder.setBolt("esImageBolt",
+                new EsBolt(Constants.ES_IMAGE_INDEX, esBoltImageConf), 1)
+                .shuffleGrouping("imageOcrBolt")
+                .addConfiguration(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,
+                        Constants.ES_SUBMIT_INTERVAL_IN_SECONDS);
 
         Config topologyConf = new Config();
         topologyConf.setDebug(true);
