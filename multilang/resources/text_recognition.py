@@ -146,7 +146,7 @@ def image_ocr(image_path='', model_east='frozen_east_text_detection.pb', min_con
 	net.setInput(blob)
 	(scores, geometry) = net.forward(layerNames)
 
-	# decode the predictions, then  apply non-maxima suppression to
+	# decode the predictions, then apply non-maxima suppression to
 	# suppress weak, overlapping bounding boxes
 	(rects, confidences) = decode_predictions(scores, geometry, min_confidence)
 	boxes = non_max_suppression(np.array(rects), probs=confidences)
@@ -179,9 +179,9 @@ def image_ocr(image_path='', model_east='frozen_east_text_detection.pb', min_con
 		roi = orig_img[startY:endY, startX:endX]
 
 		# in order to apply Tesseract v4 to OCR text we must supply
-		# (1) a language, (2) an OEM flag of 4, indicating that the we
+		# (1) a language, (2) an OEM flag of 1, indicating that the we
 		# wish to use the LSTM neural net model for OCR, and finally
-		# (3) an OEM value, in this case, 7 which implies that we are
+		# (3) a psm value, in this case, 7 which implies that we are
 		# treating the ROI as a single line of text
 		config = ("-l eng --oem 1 --psm 7")
 		text = pytesseract.image_to_string(roi, config=config)
